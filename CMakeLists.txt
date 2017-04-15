@@ -64,10 +64,13 @@ find_package(Steam)
 
 include_directories(${STEAM_INCLUDE_DIR})
 
-set(SSM_SOURCES steamtest.cpp)
+set(SSM_SOURCES
+    main.cpp
+    steam.cpp steam.hpp
+    )
 
 add_executable(ssm
-	steamtest.cpp
+	${SSM_SOURCES}
 	)
 	
 target_link_libraries(ssm ${STEAM_LIBRARIES})
