@@ -17,9 +17,14 @@
 
 #include "steam.hpp"
 
+#include "png.h"
+
 #include <assert.h>
 #include <iomanip>
 #include <sstream>
+#ifdef WIN32
+#  include <Windows.h>
+#endif
 
 Steam::Steam()
 {
@@ -32,7 +37,7 @@ Steam::Steam()
         const char *name = SteamFriends()->GetFriendPersonaName(SteamUser()->GetSteamID());
         m_user_name = name;
     }
-
+    fflush(stdout);
 }   // Steam
 
 // ----------------------------------------------------------------------------
@@ -105,48 +110,115 @@ void Steam::loadedAvatar(AvatarImageLoaded_t *pAIL)
  */
 int Steam::saveAvatarAs(const std::string filename)
 {
-//    CSteamID sid = SteamUser()->GetSteamID();
+    CSteamID sid = SteamUser()->GetSteamID();
+
     m_avatar_war_loaded = false;
-    CSteamID sid = SteamFriends()->GetFriendByIndex(1, k_EFriendFlagImmediate);
     m_avatar_index = SteamFriends()->GetLargeFriendAvatar(sid);
     if (m_avatar_index== 0)
     {
+        printf("No avatar found.\n");
+        fflush(stdout);
         return -1;
     }
     else if (m_avatar_index == -1)
     {
-        printf("Image still needs to be loaded.\n");
         int count = 1000;
         while(count > 0)
         {
             SteamAPI_RunCallbacks();
-            _sleep(1);
+#ifdef WIN32
+            Sleep(1);
+#endif
             if (m_avatar_war_loaded) break;
             count--;
         }
         if (count < 0)
         {
             printf("Not loaded :(\n");
+            fflush(stdout);
             return -2;
         }
     }
     unsigned int width, height;
     SteamUtils()->GetImageSize(m_avatar_index, &width, &height);
-    if (width > 0 && height > 0)
+    if (width <= 0 || height <= 0)
     {
-        char *buffer = new char[width*height * 4];
-        SteamUtils()->GetImageRGBA(m_avatar_index, (uint8*)buffer, width*height*4);
-        FILE *f = fopen(filename.c_str(), "wb");
-        if (!f)
-        {
-            fclose(f);
-            return -2;
-        }
-        fwrite(buffer, 1, width*height * 4, f);
-        fclose(f);
-        return 0;
+        printf("Invalid size: width %d height %d", width, height);
+        fflush(stdout);
+        return -1;
     }
 
-    //SteamUtils::GetImageRGBA();
-    return -1;
+    char *buffer = new char[width*height * 4];
+    SteamUtils()->GetImageRGBA(m_avatar_index, (uint8*)buffer, width*height * 4);
+
+    int code = 0;
+    png_structp png_ptr = NULL;
+    png_infop info_ptr = NULL;
+
+    FILE *f = fopen(filename.c_str(), "wb");
+    if (!f)
+    {
+        fclose(f);
+        printf("Could not save image as '%s'.", filename.c_str());
+        fflush(stdout);
+        return -2;
+    }
+
+    // Initialize write structure
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (png_ptr == NULL) {
+        printf("Could not allocate write struct.");
+        fflush(stdout);
+        return -2;
+    }
+
+    // Initialize info structure
+    info_ptr = png_create_info_struct(png_ptr);
+    if (info_ptr == NULL) {
+        printf("Could not allocate info struct\n");
+        fflush(stdout);
+        return -2;
+    }
+    // Setup Exception handling
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        printf("Error during png creation\n");
+        fflush(stdout);
+        return -2;
+    }
+    png_init_io(png_ptr, f);
+
+    // Write header (8 bit colour depth)
+    png_set_IHDR(png_ptr, info_ptr, width, height,
+                 8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+    // Set title
+    png_text title_text;
+    title_text.compression = PNG_TEXT_COMPRESSION_NONE;
+    title_text.key = "Avatar";
+    title_text.text = strdup(m_user_name.c_str());
+    png_set_text(png_ptr, info_ptr, &title_text, 1);
+
+    png_write_info(png_ptr, info_ptr);
+
+    png_bytep row = new png_byte[4 * width * sizeof(png_byte)];
+    // Write image data
+    unsigned int y;
+    for (y = 0; y<height; y++) 
+    {
+        png_write_row(png_ptr,(png_const_bytep)( buffer + 4*y*width ) );
+    }
+
+    // End write
+    png_write_end(png_ptr, NULL);
+
+    if (f) fclose(f);
+    if (info_ptr) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
+    if (png_ptr) png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+    if (row) free(row);
+
+    printf("done");
+    fflush(stdout);
+
+    return 0;
 }   // saveAvatarAs

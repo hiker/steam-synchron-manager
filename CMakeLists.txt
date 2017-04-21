@@ -20,14 +20,14 @@ set(SSM_INSTALL_BINARY_DIR "bin" CACHE
 if(WIN32)
     set(ENV{PATH} "$ENV{PATH};${PROJECT_SOURCE_DIR}/dependencies/include")
     set(ENV{LIB} ${PROJECT_SOURCE_DIR}/dependencies/lib)
-    set(ENV{OPENALDIR} ${PROJECT_SOURCE_DIR}/dependencies)
-    add_definitions(-D_IRR_STATIC_LIB_)
-    add_definitions(-DNO_IRR_COMPILE_WITH_X11_)
 endif()
 
 
 # Set include paths
 include_directories(".")
+
+# Add libpng:
+include_directories("${PROJECT_SOURCE_DIR}/dependencies/include")
 
 
 # Set some compiler options
@@ -73,7 +73,11 @@ add_executable(ssm
 	${SSM_SOURCES}
 	)
 	
-target_link_libraries(ssm ${STEAM_LIBRARIES})
+target_link_libraries(ssm 
+                      ${STEAM_LIBRARIES}
+                      ${PROJECT_SOURCE_DIR}/dependencies/libpng15_static.lib
+                      ${PROJECT_SOURCE_DIR}/dependencies/zlibstatic.lib
+                      )
 
 if(MSVC OR MINGW)
   add_custom_command(TARGET ssm POST_BUILD

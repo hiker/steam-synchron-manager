@@ -17,29 +17,83 @@
 
 #include "steam.hpp"
 
+#include <windows.h>
+
 #include <assert.h>
 #include <iostream>
+#include <sstream>
 #include <stdio.h>
 #include <string>
 
+
+// ----------------------------------------------------------------------------
+std::string getLine(HANDLE hStdin)
+{
+    DWORD bytes_read;
+    const int BUFFERSIZE = 1024;
+    char buffer[BUFFERSIZE];
+    bool success = ReadFile(hStdin, buffer, BUFFERSIZE - 1, &bytes_read, NULL) != 0;
+    if (bytes_read < BUFFERSIZE)
+        buffer[bytes_read] = 0;
+    std::string s = buffer;
+    return s;
+}
+
+// ----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
+    HANDLE hStdin, hStdout;
+    bool enable_pipes = (argc == 2 && std::string(argv[1]) == "1");
+    if (enable_pipes)
+    {
+        hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+        hStdin = GetStdHandle(STD_INPUT_HANDLE);
+        if ((hStdout == INVALID_HANDLE_VALUE) ||
+            (hStdin == INVALID_HANDLE_VALUE))
+        {
+            printf("Error.\n");
+            exit(-1);
+        }
+    }
+
     // Initialise steam (even before a command is issued)
     Steam *steam = new Steam();
 
     while (1)
     {
         std::string s;
-        std::getline(std::cin, s);
-        // First check valid commands even if steam is not enabled
+        // In windows when using pipes we can't use getline to read,
+        // we need to use ReadFile :(
+        if (enable_pipes)
+        {
+            s = getLine(hStdin);
+#ifdef XX
+            DWORD bytes_read;
+            const int BUFFERSIZE = 1024;
+            char buffer[BUFFERSIZE];
+            bool success = ReadFile(hStdin, buffer, BUFFERSIZE - 1, &bytes_read, NULL) != 0;
+            if (bytes_read < BUFFERSIZE)
+                buffer[bytes_read] = 0;
+            s = buffer;
+#endif
+        }
+        else
+        {
+            //std::getline(std::cin, s);
+            std::cin >> s;
+        }
+
+        // First check valid commands even if steam is not enabled 
         if (s == "init")
         {
             printf("%d\n", steam->isSteamAvailable() ? 0 : 1);
+            fflush(stdout);
             continue;
         }   // init
         else if (s == "quit")
         {
             printf("quit.\n");
+            fflush(stdout);
             break;
         }
 
@@ -49,24 +103,31 @@ int main(int argc, char **argv)
         if (s == "name")
         {
             const std::string &name = steam->getUserName();
-            printf("%d %s\n", name.size(), name.c_str());
+            printf("%d %s", name.size(), name.c_str());
+            fflush(stdout);
         }
         else if (s == "id")
         {
             const std::string &id = steam->getSteamID();
-            printf("%d %s\n", id.size(), id.c_str());
+            printf("%d %s", id.size(), id.c_str());
+            fflush(stdout);
         }
         else if (s == "avatar")
         {
-            steam->saveAvatarAs("XX");
+            printf("filename"); fflush(stdout);
+            std::string filename = getLine(hStdin);
+            steam->saveAvatarAs(filename);
         }
         else if (s == "friends")
         {
             std::vector<std::string> friends = steam->getFriends();
             printf("%d\n", friends.size());
+            fflush(stdout);
+
             for (unsigned int i = 0; i < friends.size(); ++i)
             {
-                printf("%d %s\n", friends[i].size(), friends[i].c_str());
+                printf("%d %s", friends[i].size(), friends[i].c_str());
+                fflush(stdout);
             }
         }
     }   // while(1)
