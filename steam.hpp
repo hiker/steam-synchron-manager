@@ -34,17 +34,23 @@ class Steam
 
     /** Steam user name. Only defined if m_steam_available. */
     std::string m_user_name;
-public:
-    Steam();
-    ~Steam();
 
-    const std::string &getUserName();
-    std::string getSteamID();
-    std::vector<std::string> getFriends();
+    /** Unique steam id. */
+    std::string m_steam_id;
+
+    std::string getSteamIDInternal();
 
     STEAM_CALLBACK(Steam, loadedAvatar, AvatarImageLoaded_t);
 
-    int saveAvatarAs(const std::string filename);
+public:
+     Steam();
+    ~Steam();
+
+    const std::string &getUserName();
+    const std::string &getSteamID();
+    std::vector<std::string> getFriends();
+
+    int saveAvatarAs(const std::string &filename);
 
     // ------------------------------------------------------------------------
     /** Returns true if the SteamWorks API could be initialised correctly. */

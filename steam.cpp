@@ -31,12 +31,12 @@ Steam::Steam()
     m_user_name = "";
 
     m_steam_available = SteamAPI_Init();
+    if (!m_steam_available) return;
+
     
-    if(m_steam_available)
-    {
-        const char *name = SteamFriends()->GetFriendPersonaName(SteamUser()->GetSteamID());
-        m_user_name = name;
-    }
+    const char *name = SteamFriends()->GetFriendPersonaName(SteamUser()->GetSteamID());
+    m_user_name = name;
+    m_steam_id = getSteamIDInternal();
     fflush(stdout);
 }   // Steam
 
@@ -52,20 +52,12 @@ Steam::~Steam()
 }   // ~Steam
 
 // ----------------------------------------------------------------------------
-/** Returns the (not necessarily unique) steam name of the user.
-*/
-const std::string &Steam::getUserName()
-{
-    assert(m_steam_available);
-    return m_user_name;
-}   // getUserName
-// ----------------------------------------------------------------------------
 /** Returns the unique steam id as a 16 character hex string, or the
  *  steam account id only as 8 character hex string (depending on
  *  #defines). It's not clear which id is better to use - steam
  *  seems to use the 32 bit account id only.
  */
-std::string Steam::getSteamID()
+std::string Steam::getSteamIDInternal()
 {
     CSteamID sid = SteamUser()->GetSteamID();
     std::ostringstream stream;
@@ -79,8 +71,26 @@ std::string Steam::getSteamID()
     stream << std::hex << std::setw(8) << std::setfill('0') << id;
 #endif
     return stream.str();
-}   // getSteamID
+}   // getSteamIDInternal
 
+// ----------------------------------------------------------------------------
+/** Returns the (not necessarily unique) steam name of the user.
+ */
+const std::string &Steam::getUserName()
+{
+    assert(m_steam_available);
+    return m_user_name;
+}   // getUserName
+
+// ----------------------------------------------------------------------------
+/** Returns the unique steam user id.
+ */
+const std::string& Steam::getSteamID()
+{
+    assert(m_steam_available);
+    return m_steam_id;
+}   // getUserName
+    
 // ----------------------------------------------------------------------------
 /** Returns a vector with the name of all friends.
  */
@@ -108,7 +118,7 @@ void Steam::loadedAvatar(AvatarImageLoaded_t *pAIL)
 /** Downloads the avatar from steam and save it in a file.
  *  \param filename Name under which to save the avatar.
  */
-int Steam::saveAvatarAs(const std::string filename)
+int Steam::saveAvatarAs(const std::string &filename)
 {
     CSteamID sid = SteamUser()->GetSteamID();
 
@@ -196,7 +206,11 @@ int Steam::saveAvatarAs(const std::string filename)
     png_text title_text;
     title_text.compression = PNG_TEXT_COMPRESSION_NONE;
     title_text.key = "Avatar";
+#ifdef WIN32
+    title_text.text = _strdup(m_user_name.c_str());
+#else
     title_text.text = strdup(m_user_name.c_str());
+#endif
     png_set_text(png_ptr, info_ptr, &title_text, 1);
 
     png_write_info(png_ptr, info_ptr);

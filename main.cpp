@@ -86,13 +86,13 @@ int main(int argc, char **argv)
         // First check valid commands even if steam is not enabled 
         if (s == "init")
         {
-            printf("%d\n", steam->isSteamAvailable() ? 0 : 1);
+            printf("%d", steam->isSteamAvailable() ? 1 : 0);
             fflush(stdout);
             continue;
         }   // init
         else if (s == "quit")
         {
-            printf("quit.\n");
+            printf("quit");
             fflush(stdout);
             break;
         }
@@ -132,8 +132,6 @@ int main(int argc, char **argv)
         }
     }   // while(1)
 
-#ifdef XX
-#endif
     delete steam;
 
     return 0;
