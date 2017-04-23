@@ -17,11 +17,15 @@
 
 #include "steam/steam_api.h"
 
+#include <assert.h>
 #include <string>
 #include <vector>
 
 class Steam
 {
+    /** Singleton pointer. */
+    static Steam  *m_steam;
+
     /** True if steam was initialised correctly. */
     bool m_steam_available;
 
@@ -42,9 +46,36 @@ class Steam
 
     STEAM_CALLBACK(Steam, loadedAvatar, AvatarImageLoaded_t);
 
-public:
+
      Steam();
     ~Steam();
+
+public:
+    /** Creates a singleton. */
+    static void create()
+    {
+        assert(!m_steam);
+        m_steam = new Steam();
+    }   // create;
+
+    // ------------------------------------------------------------------------
+    /** Returns the singleton pf the Steam class. */
+    static Steam *get()
+    {
+        assert(m_steam);
+        return m_steam;
+    }   // get
+
+    // ------------------------------------------------------------------------
+    /** Destroys the singleton of the Steam class. */
+    static void destroy()
+    {
+        assert(m_steam);
+        delete m_steam;
+        m_steam = NULL;
+    }   // destroy
+
+    // ------------------------------------------------------------------------
 
     const std::string &getUserName();
     const std::string &getSteamID();

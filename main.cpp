@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     }
 
     // Initialise steam (even before a command is issued)
-    Steam *steam = new Steam();
+    Steam::create();
 
     while (1)
     {
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
         // First check valid commands even if steam is not enabled 
         if (s == "init")
         {
-            printf("%d", steam->isSteamAvailable() ? 1 : 0);
+            printf("%d", Steam::get()->isSteamAvailable() ? 1 : 0);
             fflush(stdout);
             continue;
         }   // init
@@ -98,17 +98,17 @@ int main(int argc, char **argv)
         }
 
         // Any other command should only be issued if steam is available
-        assert(steam->isSteamAvailable());
+        assert(Steam::get()->isSteamAvailable());
 
         if (s == "name")
         {
-            const std::string &name = steam->getUserName();
+            const std::string &name = Steam::get()->getUserName();
             printf("%d %s", name.size(), name.c_str());
             fflush(stdout);
         }
         else if (s == "id")
         {
-            const std::string &id = steam->getSteamID();
+            const std::string &id = Steam::get()->getSteamID();
             printf("%d %s", id.size(), id.c_str());
             fflush(stdout);
         }
@@ -116,11 +116,11 @@ int main(int argc, char **argv)
         {
             printf("filename"); fflush(stdout);
             std::string filename = getLine(hStdin);
-            steam->saveAvatarAs(filename);
+            Steam::get()->saveAvatarAs(filename);
         }
         else if (s == "friends")
         {
-            std::vector<std::string> friends = steam->getFriends();
+            std::vector<std::string> friends = Steam::get()->getFriends();
             printf("%d\n", friends.size());
             fflush(stdout);
 
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
         }
     }   // while(1)
 
-    delete steam;
+    Steam::destroy();
 
     return 0;
 }

@@ -26,6 +26,8 @@
 #  include <Windows.h>
 #endif
 
+Steam *Steam::m_steam = NULL;
+// ----------------------------------------------------------------------------
 Steam::Steam()
 {
     m_user_name = "";
