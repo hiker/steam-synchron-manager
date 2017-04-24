@@ -12,3 +12,11 @@ cmake ..
 The SteamWorks SDK must be installed either inside of this project, or
 on the same level (otherwise define STEAM_DIR).
 
+Installing the dependencies:
+mkdir -p dependencies/include
+cp ../stk-code/bld/bld/libpng/RelWithDebInfo/libpng15_static.lib dependencies
+cp ../stk-code/lib/libpng/*.h dependencies/include
+
+Combining with STK:
+cp ./bld/bin/Debug/ssm.exe ../stk-code/bld/
+
