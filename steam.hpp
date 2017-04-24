@@ -33,6 +33,12 @@ class Steam
      *  image finished downloading. */
     bool m_avatar_war_loaded;
 
+    // Irrlicht is not included in the standalone SSM.
+#ifdef HAS_IRRLICHT
+    /** User name as irr::stringw (wchar), which is used in STK. */
+    irr::core::stringw m_user_name_wchar;
+#endif
+
     /** Steam image number of the avatar to use. */
     int m_avatar_index;
 
@@ -82,6 +88,15 @@ public:
     std::vector<std::string> getFriends();
 
     int saveAvatarAs(const std::string &filename);
+#ifdef HAS_IRRLICHT
+    // ------------------------------------------------------------------------
+    /** Returns the user name as wide string. */
+    const irr::core::stringw& getUserNameWchar()
+    {
+        assert(m_steam_available);
+        return m_user_name_wchar;
+    }   // getUserNameWchar
+#endif
 
     // ------------------------------------------------------------------------
     /** Returns true if the SteamWorks API could be initialised correctly. */

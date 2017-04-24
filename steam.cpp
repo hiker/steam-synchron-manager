@@ -38,6 +38,9 @@ Steam::Steam()
     
     const char *name = SteamFriends()->GetFriendPersonaName(SteamUser()->GetSteamID());
     m_user_name = name;
+#ifdef HAS_IRRLICHT
+    m_user_name_wchar = StringUtils::utf8ToWide(m_user_name);
+#endif
     m_steam_id = getSteamIDInternal();
     fflush(stdout);
 }   // Steam
