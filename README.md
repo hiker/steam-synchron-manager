@@ -18,5 +18,7 @@ cp ../stk-code/bld/bld/libpng/RelWithDebInfo/libpng15_static.lib dependencies
 cp ../stk-code/lib/libpng/*.h dependencies/include
 
 Combining with STK:
-cp ./bld/bin/Debug/ssm.exe ../stk-code/bld/
+cp ./bld/bin/Debug/ssm.exe         ../stk-code/bld/
+cp ./bld/bin/Debug/steam_api.dll   ../stk-code/bld
+cp ./bld/bin/Debug/steam_appid.txt ../stk-code/bld
 
