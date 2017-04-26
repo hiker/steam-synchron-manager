@@ -20,9 +20,11 @@ cp ../stk-code/lib/libpng/*.h dependencies/include
 
 # Compilation
 Use cmake:
+```
 mkdir bld
 cd bld
 cmake ..
+```
 Then start Visual Studio, open the solution in the bld directory, and compile.
 
 # Combining with STK:
