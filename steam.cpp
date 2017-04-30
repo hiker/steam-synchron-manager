@@ -210,7 +210,7 @@ int Steam::saveAvatarAs(const std::string &filename)
     // Set title
     png_text title_text;
     title_text.compression = PNG_TEXT_COMPRESSION_NONE;
-    title_text.key = "Avatar";
+    title_text.key = (png_charp)"Avatar";
 #ifdef WIN32
     title_text.text = _strdup(m_user_name.c_str());
 #else
@@ -234,7 +234,7 @@ int Steam::saveAvatarAs(const std::string &filename)
     if (f) fclose(f);
     if (info_ptr) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
     if (png_ptr) png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-    if (row) free(row);
+    if (row) delete row;
 
     printf("done");
     fflush(stdout);

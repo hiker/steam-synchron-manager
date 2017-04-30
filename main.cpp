@@ -17,7 +17,9 @@
 
 #include "steam.hpp"
 
-#include <windows.h>
+#ifdef WIN32
+#  include <windows.h>
+#endif
 
 #include <assert.h>
 #include <iostream>
@@ -27,6 +29,7 @@
 
 
 // ----------------------------------------------------------------------------
+#ifdef WIN32
 std::string getLine(HANDLE hStdin)
 {
     DWORD bytes_read;
@@ -38,12 +41,15 @@ std::string getLine(HANDLE hStdin)
     std::string s = buffer;
     return s;
 }
+#endif
 
 // ----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
-    HANDLE hStdin, hStdout;
     bool enable_pipes = (argc == 2 && std::string(argv[1]) == "1");
+
+#ifdef WIN32
+    HANDLE hStdin, hStdout;
     if (enable_pipes)
     {
         hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -55,6 +61,7 @@ int main(int argc, char **argv)
             exit(-1);
         }
     }
+#endif
 
     // Initialise steam (even before a command is issued)
     Steam::create();
@@ -66,8 +73,8 @@ int main(int argc, char **argv)
         // we need to use ReadFile :(
         if (enable_pipes)
         {
+#ifdef WIN32
             s = getLine(hStdin);
-#ifdef XX
             DWORD bytes_read;
             const int BUFFERSIZE = 1024;
             char buffer[BUFFERSIZE];
@@ -103,30 +110,34 @@ int main(int argc, char **argv)
         if (s == "name")
         {
             const std::string &name = Steam::get()->getUserName();
-            printf("%d %s", name.size(), name.c_str());
+            printf("%d %s", (int)name.size(), name.c_str());
             fflush(stdout);
         }
         else if (s == "id")
         {
             const std::string &id = Steam::get()->getSteamID();
-            printf("%d %s", id.size(), id.c_str());
+            printf("%d %s", (int)id.size(), id.c_str());
             fflush(stdout);
         }
         else if (s == "avatar")
         {
             printf("filename"); fflush(stdout);
+#ifdef WIN32
             std::string filename = getLine(hStdin);
+#else
+            std::string filename("xx.png");
+#endif
             Steam::get()->saveAvatarAs(filename);
         }
         else if (s == "friends")
         {
             std::vector<std::string> friends = Steam::get()->getFriends();
-            printf("%d\n", friends.size());
+            printf("%d\n", (int)friends.size());
             fflush(stdout);
 
             for (unsigned int i = 0; i < friends.size(); ++i)
             {
-                printf("%d %s", friends[i].size(), friends[i].c_str());
+	      printf("%d %s", (int)friends[i].size(), friends[i].c_str());
                 fflush(stdout);
             }
         }

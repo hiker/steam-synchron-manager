@@ -11,14 +11,17 @@ FIND_PATH(STEAM_INCLUDE_DIR steam/steam_api.h
     ../steam-sdk/public
     ./steam-sdk/public
     )
-
-FIND_LIBRARY(STEAM_LIBRARIES
-    steam_api
-    PATHS
-    ${STEAM_DIR}/redistributable_bin
-    ../steam-sdk/redistributable_bin
-    ./steam-sdk/redistributable_bin
-    )
+if(WIN32)
+    FIND_LIBRARY(STEAM_LIBRARIES steam_api PATHS
+        ${STEAM_DIR}/redistributable_bin
+        ../steam-sdk/redistributable_bin
+        ./steam-sdk/redistributable_bin         )
+else()   # linux
+    FIND_LIBRARY(STEAM_LIBRARIES steam_api PATHS
+    ${STEAM_DIR}/redistributable_bin/linux64
+    ../steam-sdk/redistributable_bin/linux64
+    ./steam-sdk/redistributable_bin/linux64     )
+endif()
 
 # Handle the QUIETLY and REQUIRED arguments and set STEAM_FOUND to TRUE if
 # all listed variables are TRUE

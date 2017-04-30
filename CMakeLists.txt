@@ -32,8 +32,7 @@ include_directories("${PROJECT_SOURCE_DIR}/dependencies/include")
 
 # Set some compiler options
 if(UNIX OR MINGW)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function -Wno-invalid-offsetof")
 endif()
 
 if(MINGW AND CMAKE_BUILD_TYPE MATCHES Release)
@@ -50,6 +49,9 @@ if(MSVC)
     # VS will automatically add NDEBUG for release mode, but only _DEBUG in debug mode.
     # Since SSM uses DEBUG, this is added for debug compilation only:
     set_property(DIRECTORY PROPERTY COMPILE_DEFINITIONS_DEBUG DEBUG)
+    set(ADDITIONAL_LIBS ${PROJECT_SOURCE_DIR}/dependencies/libpng15_static.lib
+                        ${PROJECT_SOURCE_DIR}/dependencies/zlibstatic.lib      )
+
 else()
     # All non VS generators used create only a single compile mode, so
     # compile flags can be simplye be added
@@ -58,6 +60,9 @@ else()
     else()
         add_definitions(-DNDEBUG)
     endif()
+    find_Package(PNG REQUIRED)
+    include_directories(${PNG_INCLUDE_DIR})
+    set(ADDITIONAL_LIBS ${PNG_LIBRARY})
 endif()
 
 find_package(Steam)
@@ -75,8 +80,7 @@ add_executable(ssm
 	
 target_link_libraries(ssm 
                       ${STEAM_LIBRARIES}
-                      ${PROJECT_SOURCE_DIR}/dependencies/libpng15_static.lib
-                      ${PROJECT_SOURCE_DIR}/dependencies/zlibstatic.lib
+                      ${ADDITIONAL_LIBS}
                       )
 
 if(MSVC OR MINGW)
