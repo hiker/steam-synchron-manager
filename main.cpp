@@ -26,7 +26,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <string>
-
+#include <unistd.h>
 
 // ----------------------------------------------------------------------------
 #ifdef WIN32
@@ -46,6 +46,11 @@ std::string getLine(HANDLE hStdin)
 // ----------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
+//    int xx = 0;
+//    while(xx==0)
+    {
+//        sleep(1);
+    }
     bool enable_pipes = (argc == 2 && std::string(argv[1]) == "1");
 
 #ifdef WIN32
@@ -74,7 +79,7 @@ int main(int argc, char **argv)
         if (enable_pipes)
         {
 #ifdef WIN32
-            s = getLine(hStdin);
+        //    s = getLine(hStdin);
             DWORD bytes_read;
             const int BUFFERSIZE = 1024;
             char buffer[BUFFERSIZE];
@@ -82,11 +87,12 @@ int main(int argc, char **argv)
             if (bytes_read < BUFFERSIZE)
                 buffer[bytes_read] = 0;
             s = buffer;
+#else
+            std::cin >> s;
 #endif
         }
         else
         {
-            //std::getline(std::cin, s);
             std::cin >> s;
         }
 
@@ -125,7 +131,8 @@ int main(int argc, char **argv)
 #ifdef WIN32
             std::string filename = getLine(hStdin);
 #else
-            std::string filename("xx.png");
+            std::string filename;
+            std::cin >> filename;
 #endif
             Steam::get()->saveAvatarAs(filename);
         }
